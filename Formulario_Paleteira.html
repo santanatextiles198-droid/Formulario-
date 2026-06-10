@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Checklist de Inspeção de Paleteira</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #1d9e75;
+      --green-dark: #0f6e56;
+      --green-light: #e1f5ee;
+      --text: #1a1a1a;
+      --text-muted: #6b6b6b;
+      --text-hint: #a0a0a0;
+      --bg: #f5f5f3;
+      --surface: #ffffff;
+      --border: rgba(0,0,0,0.12);
+      --border-strong: rgba(0,0,0,0.22);
+      --radius: 10px;
+      --radius-lg: 14px;
+    }
+    body {
+      font-family: 'IBM Plex Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.5;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .header {
+      background: var(--surface);
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .header h1 { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+    .header p  { font-size: 13px; color: var(--text-muted); line-height: 1.55; }
+    .form-body { padding: 20px 16px 40px; display: flex; flex-direction: column; gap: 12px; }
+    .card { background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 16px; }
+    .section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-hint); margin-bottom: 14px; }
+    .field { margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+    .field label { display: block; font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; }
+    .field input[type=text],
+    .field input[type=date],
+    .field input[type=number],
+    .field select,
+    .field textarea {
+      width: 100%; font-family: 'IBM Plex Sans', sans-serif; font-size: 15px;
+      color: var(--text); background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 11px 14px; outline: none;
+      -webkit-appearance: none; appearance: none; transition: border-color 0.15s;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--green); }
+    .field select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px;
+    }
+    .field textarea { resize: vertical; min-height: 96px; line-height: 1.6; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .check-item { background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 14px 16px; }
+    .check-item .question { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 12px; }
+    .radio-row { display: flex; gap: 8px; }
+    .radio-pill { flex: 1; position: relative; }
+    .radio-pill input[type=radio] { position: absolute; opacity: 0; width: 0; height: 0; }
+    .radio-pill label {
+      display: flex; align-items: center; justify-content: center;
+      padding: 8px 4px; border: 1px solid var(--border); border-radius: 8px;
+      font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer;
+      transition: all 0.15s; background: var(--bg);
+      user-select: none; -webkit-user-select: none;
+    }
+    .radio-pill input:checked + label { border-color: var(--green); background: var(--green-light); color: var(--green-dark); }
+    .radio-pill.nao     input:checked + label { border-color: #e24b4a; background: #fff0f0; color: #a32d2d; }
+    .radio-pill.parcial input:checked + label { border-color: #ba7517; background: #faeeda; color: #633806; }
+    .upload-box {
+      position: relative; border: 1.5px dashed var(--border-strong);
+      border-radius: var(--radius); padding: 20px 16px; text-align: center;
+      background: var(--bg); cursor: pointer; overflow: hidden;
+    }
+    .upload-box input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .upload-icon  { font-size: 28px; color: var(--text-hint); margin-bottom: 6px; }
+    .upload-title { font-size: 14px; font-weight: 500; color: var(--text); }
+    .upload-sub   { font-size: 12px; color: var(--text-hint); margin-top: 2px; }
+    .preview-img  { display: none; max-width: 100%; border-radius: 8px; margin-top: 10px; }
+    .btn-submit {
+      width: 100%; padding: 16px; background: var(--green); color: #fff;
+      font-family: 'IBM Plex Sans', sans-serif; font-size: 16px; font-weight: 600;
+      border: none; border-radius: var(--radius-lg); cursor: pointer;
+      transition: background 0.15s, transform 0.1s; margin-top: 8px;
+    }
+    .btn-submit:active   { background: var(--green-dark); transform: scale(0.98); }
+    .btn-submit:disabled { background: #aaa; cursor: not-allowed; }
+    .check-grid { display: flex; flex-direction: column; gap: 10px; }
+
+    /* Toast de status */
+    #toast {
+      display: none; position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: #1a1a1a; color: #fff; padding: 12px 22px; border-radius: 10px;
+      font-size: 14px; font-weight: 500; z-index: 9999; max-width: 90%;
+      text-align: center; box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    }
+    #toast.success { background: var(--green-dark); }
+    #toast.error   { background: #c0392b; }
+
+    /* Spinner no botão */
+    .spinner {
+      display: inline-block; width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff;
+      border-radius: 50%; animation: spin 0.7s linear infinite;
+      vertical-align: middle; margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Checklist de Inspeção de Paleteira</h1>
+    <p>Preencha os itens conforme a inspeção realizada. Campos marcados com * são obrigatórios.</p>
+  </div>
+
+  <div class="form-body">
+
+    <!-- ── INFORMAÇÕES GERAIS ── -->
+    <div class="card">
+      <div class="section-title">Informações gerais</div>
+
+      <div class="field">
+        <label for="data">Data *</label>
+        <input type="date" id="data">
+      </div>
+
+      <div class="field">
+        <label for="turno">Turno *</label>
+        <select id="turno">
+          <option value="">Selecione</option>
+          <option value="A">A</option>
+          <option value="B">B</option>
+          <option value="ADM">ADM</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Responsável pela Inspeção *</label>
+        <div class="two-col">
+          <input type="text" id="nome"      placeholder="Nome">
+          <input type="text" id="sobrenome" placeholder="Sobrenome">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="paleteira">Número da Paleteira</label>
+        <select id="paleteira">
+          <option value="">Selecione</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- ── CHECKLIST ── -->
+    <div class="check-grid">
+
+      <div class="check-item">
+        <div class="question">Estruturas sem avarias aparentes ?</div>
+        <div class="radio-row">
+          <div class="radio-pill"><input type="radio" name="q0" id="q0s" value="SIM"><label for="q0s">SIM</label></div>
+          <div class="radio-pill nao"><input type="radio" name="q0" id="q0n" value="NAO"><label for="q0n">NÃO</label></div>
+          <div class="radio-pill parcial"><input type="radio" name="q0" id="q0p" value="PARCIAL"><label for="q0p">PARCIAL</label></div>
+        </div>
+      </div>
+
+      <div class="check-item">
+        <div class="question">Buzina funcionando normalmente ?</div>
+        <div class="radio-row">
+          <div class="radio-pill"><input type="radio" name="q1" id="q1s" value="SIM"><label for="q1s">SIM</label></div>
+          <div class="radio-pill nao"><input type="radio" name="q1" id="q1n" value="NAO"><label for="q1n">NÃO</label></div>
+          <div class="radio-pill parcial"><input type="radio" name="q1" id="q1p" value="PARCIAL"><label for="q1p">PARCIAL</label></div>
+        </div>
+      </div>
+
+      <div class="check-item">
+        <div class="question">Rodas em bom estado ?</div>
+        <div class="radio-row">
+          <div class="radio-pill"><input type="radio" name="q2" id="q2s" value="SIM"><label for="q2s">SIM</label></div>
+          <div class="radio-pill nao"><input type="radio" name="q2" id="q2n" value="NAO"><label for="q2n">NÃO</label></div>
+          <div class="radio-pill parcial"><input type="radio" name="q2" id="q2p" value="PARCIAL"><label for="q2p">PARCIAL</label></div>
+        </div>
+      </div>
+
+      <div class="check-item">
+        <div class="question">Direção funcionando ?</div>
+        <div class="radio-row">
+          <div class="radio-pill"><input type="radio" name="q3" id="q3s" value="SIM"><label for="q3s">SIM</label></div>
+          <div class="radio-pill nao"><input type="radio" name="q3" id="q3n" value="NAO"><label for="q3n">NÃO</label></div>
+          <div class="radio-pill parcial"><input type="radio" name="q3" id="q3p" value="PARCIAL"><label for="q3p">PARCIAL</label></div>
+        </div>
+      </div>
+
+      <div class="check-item">
+        <div class="question">Freios funcionando ?</div>
+        <div class="radio-row">
+          <div class="radio-pill"><input type="radio" name="q4" id="q4s" value="SIM"><label for="q4s">SIM</label></div>
+          <div class="radio-pill nao"><input type="radio" name="q4" id="q4n" value="NAO"><label for="q4n">NÃO</label></div>
+          <div class="radio-pill parcial"><input type="radio" name="q4" id="q4p" value="PARCIAL"><label for="q4p">PARCIAL</label></div>
+        </div>
+      </div>
+
+      <div class="check-item">
+        <div class="question">Garfos em boas condições de uso ?</div>
+        <div class="radio-row">
+          <div class="radio-pill"><input type="radio" name="q5" id="q5s" value="SIM"><label for="q5s">SIM</label></div>
+          <div class="radio-pill nao"><input type="radio" name="q5" id="q5n" value="NAO"><label for="q5n">NÃO</label></div>
+          <div class="radio-pill parcial"><input type="radio" name="q5" id="q5p" value="PARCIAL"><label for="q5p">PARCIAL</label></div>
+        </div>
+      </div>
+
+      <div class="check-item">
+        <div class="question">Bateria com carga adequada ?</div>
+        <div class="radio-row">
+          <div class="radio-pill"><input type="radio" name="q6" id="q6s" value="SIM"><label for="q6s">SIM</label></div>
+          <div class="radio-pill nao"><input type="radio" name="q6" id="q6n" value="NAO"><label for="q6n">NÃO</label></div>
+          <div class="radio-pill parcial"><input type="radio" name="q6" id="q6p" value="PARCIAL"><label for="q6p">PARCIAL</label></div>
+        </div>
+      </div>
+
+      <div class="check-item">
+        <div class="question">Indicador de bateria funcionando ?</div>
+        <div class="radio-row">
+          <div class="radio-pill"><input type="radio" name="q7" id="q7s" value="SIM"><label for="q7s">SIM</label></div>
+          <div class="radio-pill nao"><input type="radio" name="q7" id="q7n" value="NAO"><label for="q7n">NÃO</label></div>
+          <div class="radio-pill parcial"><input type="radio" name="q7" id="q7p" value="PARCIAL"><label for="q7p">PARCIAL</label></div>
+        </div>
+      </div>
+
+      <div class="check-item">
+        <div class="question">Apresenta vazamento de óleo ?</div>
+        <div class="radio-row">
+          <div class="radio-pill"><input type="radio" name="q8" id="q8s" value="SIM"><label for="q8s">SIM</label></div>
+          <div class="radio-pill nao"><input type="radio" name="q8" id="q8n" value="NAO"><label for="q8n">NÃO</label></div>
+          <div class="radio-pill parcial"><input type="radio" name="q8" id="q8p" value="PARCIAL"><label for="q8p">PARCIAL</label></div>
+        </div>
+      </div>
+
+      <div class="check-item">
+        <div class="question">Limpeza externa realizada ?</div>
+        <div class="radio-row">
+          <div class="radio-pill"><input type="radio" name="q9" id="q9s" value="SIM"><label for="q9s">SIM</label></div>
+          <div class="radio-pill nao"><input type="radio" name="q9" id="q9n" value="NAO"><label for="q9n">NÃO</label></div>
+          <div class="radio-pill parcial"><input type="radio" name="q9" id="q9p" value="PARCIAL"><label for="q9p">PARCIAL</label></div>
+        </div>
+      </div>
+
+      <div class="check-item">
+        <div class="question">Está com algum barulho anormal ?</div>
+        <div class="radio-row">
+          <div class="radio-pill"><input type="radio" name="q10" id="q10s" value="SIM"><label for="q10s">SIM</label></div>
+          <div class="radio-pill nao"><input type="radio" name="q10" id="q10n" value="NAO"><label for="q10n">NÃO</label></div>
+          <div class="radio-pill parcial"><input type="radio" name="q10" id="q10p" value="PARCIAL"><label for="q10p">PARCIAL</label></div>
+        </div>
+      </div>
+
+      <div class="check-item">
+        <div class="question">Operador está usando EPI adequadamente ?</div>
+        <div class="radio-row">
+          <div class="radio-pill"><input type="radio" name="q11" id="q11s" value="SIM"><label for="q11s">SIM</label></div>
+          <div class="radio-pill nao"><input type="radio" name="q11" id="q11n" value="NAO"><label for="q11n">NÃO</label></div>
+          <div class="radio-pill parcial"><input type="radio" name="q11" id="q11p" value="PARCIAL"><label for="q11p">PARCIAL</label></div>
+        </div>
+      </div>
+
+    </div><!-- /.check-grid -->
+
+    <!-- ── RESULTADO ── -->
+    <div class="card">
+      <div class="section-title">Resultado</div>
+
+      <div class="field">
+        <label>Veículo aprovado ?</label>
+        <div class="radio-row">
+          <div class="radio-pill"><input type="radio" name="aprovado" id="apr_sim" value="SIM"><label for="apr_sim">SIM</label></div>
+          <div class="radio-pill nao"><input type="radio" name="aprovado" id="apr_nao" value="NAO"><label for="apr_nao">NÃO</label></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="horimetro">Horímetro</label>
+        <input type="number" id="horimetro" placeholder="Ex: 4386">
+      </div>
+
+      <div class="field">
+        <label for="obs">Observações</label>
+        <textarea id="obs" placeholder="Descreva qualquer observação relevante..."></textarea>
+      </div>
+    </div>
+
+    <!-- ── FOTOS ── -->
+    <div class="card">
+      <div class="section-title">Fotos</div>
+
+      <div class="field">
+        <label>Foto Hímetro</label>
+        <div class="upload-box" id="box1">
+          <input type="file" id="fotoHimetro" accept="image/*" capture="environment" onchange="previewImg(this,'prev1','box1')">
+          <div class="upload-icon">&#8593;</div>
+          <div class="upload-title">Tirar / Selecionar foto</div>
+          <div class="upload-sub">JPG, PNG, HEIC</div>
+          <img id="prev1" class="preview-img" alt="Preview foto hímetro">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Foto Paleteira</label>
+        <div class="upload-box" id="box2">
+          <input type="file" id="fotoPaleteira" accept="image/*" capture="environment" onchange="previewImg(this,'prev2','box2')">
+          <div class="upload-icon">&#8593;</div>
+          <div class="upload-title">Tirar / Selecionar foto</div>
+          <div class="upload-sub">JPG, PNG, HEIC</div>
+          <img id="prev2" class="preview-img" alt="Preview foto paleteira">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Foto avaria (se houver)</label>
+        <div class="upload-box" id="box3">
+          <input type="file" id="fotoAvaria" accept="image/*" capture="environment" onchange="previewImg(this,'prev3','box3')">
+          <div class="upload-icon">&#8593;</div>
+          <div class="upload-title">Tirar / Selecionar foto</div>
+          <div class="upload-sub">JPG, PNG, HEIC</div>
+          <img id="prev3" class="preview-img" alt="Preview foto avaria">
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-submit" id="btnEnviar" onclick="enviar()">Enviar Checklist</button>
+
+  </div><!-- /.form-body -->
+
+  <!-- Toast de feedback -->
+  <div id="toast"></div>
+
+  <script>
+    // ──────────────────────────────────────────────────────────
+    // COLE AQUI A URL DO SEU WEB APP APÓS PUBLICAR O SCRIPT
+    // Ex: https://script.google.com/macros/s/XXXXXXXXXXX/exec
+    // ──────────────────────────────────────────────────────────
+    var WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwxloDMHXquSXoATcqTRjH4mqwICVEvvdBwGqjxPSioZfQiaAmzqCUfFU18xWOCXDK3/exec';
+
+    // Define a data de hoje como padrão
+    var _h=new Date();var _dd=String(_h.getDate()).padStart(2,'0');var _mm=String(_h.getMonth()+1).padStart(2,'0');document.getElementById('data').value=_h.getFullYear()+'-'+_mm+'-'+_dd;
+
+    // ── Preview de imagem ──
+    function previewImg(input, prevId, boxId) {
+      var file = input.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var img = document.getElementById(prevId);
+        img.src = e.target.result;
+        img.style.display = 'block';
+        var box = document.getElementById(boxId);
+        box.querySelector('.upload-icon').style.display = 'none';
+        box.querySelector('.upload-title').textContent = file.name;
+        box.querySelector('.upload-sub').style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // ── Toast ──
+    function showToast(msg, type, duration) {
+      var t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = type || '';
+      t.style.display = 'block';
+      setTimeout(function() { t.style.display = 'none'; }, duration || 4000);
+    }
+
+    // ── Lê valor de radio group ──
+    function getRadio(name) {
+      var el = document.querySelector('input[name="' + name + '"]:checked');
+      return el ? el.value : '';
+    }
+
+    // ── Nome do arquivo (para fotos) ──
+    function getFileName(inputId) {
+      var input = document.getElementById(inputId);
+      return (input && input.files && input.files[0]) ? input.files[0].name : '';
+    }
+
+    // ── Enviar ──
+    function enviar() {
+      // Validação dos campos obrigatórios
+      var data    = document.getElementById('data').value;
+      var turno   = document.getElementById('turno').value;
+      var nome    = document.getElementById('nome').value.trim();
+
+      if (!data) {
+        showToast('⚠️ Preencha a data.', 'error'); return;
+      }
+      if (!turno) {
+        showToast('⚠️ Selecione o turno.', 'error'); return;
+      }
+      if (!nome) {
+        showToast('⚠️ Informe o nome do responsável.', 'error'); return;
+      }
+
+      if (!WEB_APP_URL || WEB_APP_URL === 'COLE_AQUI_A_URL_DO_SEU_WEB_APP') {
+        showToast('⚠️ URL do Web App não configurada. Leia as instruções no arquivo Code.gs.', 'error', 6000);
+        return;
+      }
+
+      // Monta payload
+      var sobrenome = document.getElementById('sobrenome').value.trim();
+      var operador  = nome + (sobrenome ? ' ' : '') + sobrenome;
+
+      var payload = {
+        data:         data,
+        turno:        turno,
+        operador:     operador,
+        nome:         nome,
+        sobrenome:    sobrenome,
+        paleteira:    document.getElementById('paleteira').value,
+        q0:           getRadio('q0'),
+        q1:           getRadio('q1'),
+        q2:           getRadio('q2'),
+        q3:           getRadio('q3'),
+        q4:           getRadio('q4'),
+        q5:           getRadio('q5'),
+        q6:           getRadio('q6'),
+        q7:           getRadio('q7'),
+        q8:           getRadio('q8'),
+        q9:           getRadio('q9'),
+        q10:          getRadio('q10'),
+        q11:          getRadio('q11'),
+        aprovado:     getRadio('aprovado'),
+        horimetro:    document.getElementById('horimetro').value,
+        obs:          document.getElementById('obs').value.trim(),
+        fotoHimetro:  getFileName('fotoHimetro'),
+        fotoPaleteira:getFileName('fotoPaleteira'),
+        fotoAvaria:   getFileName('fotoAvaria')
+      };
+
+      // Bloqueia botão e mostra spinner
+      var btn = document.getElementById('btnEnviar');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Enviando...';
+
+      fetch(WEB_APP_URL, {
+        method:  'POST',
+        mode:    'no-cors',             // necessário para Apps Script sem CORS headers
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload)
+      })
+      .then(function() {
+        // no-cors sempre retorna opaque; se não deu erro, assumimos sucesso
+        showToast('✅ Checklist enviado com sucesso!', 'success', 5000);
+        btn.innerHTML = '✅ Enviado!';
+        setTimeout(function() {
+          limparFormulario();
+          btn.disabled = false;
+          btn.innerHTML = 'Enviar Checklist';
+        }, 3000);
+      })
+      .catch(function(err) {
+        showToast('❌ Erro ao enviar. Verifique a conexão.', 'error', 6000);
+        btn.disabled = false;
+        btn.innerHTML = 'Enviar Checklist';
+      });
+    }
+
+    // ── Limpa o formulário após envio ──
+    function limparFormulario() {
+      var _h2=new Date();var _dd2=String(_h2.getDate()).padStart(2,'0');var _mm2=String(_h2.getMonth()+1).padStart(2,'0');document.getElementById('data').value=_h2.getFullYear()+'-'+_mm2+'-'+_dd2;
+      document.getElementById('turno').value   = '';
+      document.getElementById('nome').value    = '';
+      document.getElementById('sobrenome').value = '';
+      document.getElementById('paleteira').value = '';
+      document.getElementById('horimetro').value = '';
+      document.getElementById('obs').value     = '';
+
+      // Radio buttons
+      var radios = document.querySelectorAll('input[type=radio]');
+      radios.forEach(function(r){ r.checked = false; });
+
+      // Fotos
+      ['fotoHimetro','fotoPaleteira','fotoAvaria'].forEach(function(id){
+        var el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      ['prev1','prev2','prev3'].forEach(function(id){
+        var img = document.getElementById(id);
+        if (img) { img.src = ''; img.style.display = 'none'; }
+      });
+      ['box1','box2','box3'].forEach(function(id){
+        var box = document.getElementById(id);
+        if (box) {
+          var icon  = box.querySelector('.upload-icon');
+          var title = box.querySelector('.upload-title');
+          var sub   = box.querySelector('.upload-sub');
+          if (icon)  icon.style.display  = '';
+          if (title) title.textContent   = 'Tirar / Selecionar foto';
+          if (sub)   sub.style.display   = '';
+        }
+      });
+    }
+  </script>
+</body>
+</html>
