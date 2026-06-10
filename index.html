@@ -349,7 +349,7 @@
     var WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwxloDMHXquSXoATcqTRjH4mqwICVEvvdBwGqjxPSioZfQiaAmzqCUfFU18xWOCXDK3/exec';
 
     // Define a data de hoje como padrão
-    document.getElementById('data').value = new Date().toISOString().split('T')[0];
+    var _h=new Date();var _dd=String(_h.getDate()).padStart(2,'0');var _mm=String(_h.getMonth()+1).padStart(2,'0');document.getElementById('data').value=_h.getFullYear()+'-'+_mm+'-'+_dd;
 
     // ── Preview de imagem ──
     function previewImg(input, prevId, boxId) {
@@ -472,7 +472,7 @@
 
     // ── Limpa o formulário após envio ──
     function limparFormulario() {
-      document.getElementById('data').value    = new Date().toISOString().split('T')[0];
+      var _h2=new Date();var _dd2=String(_h2.getDate()).padStart(2,'0');var _mm2=String(_h2.getMonth()+1).padStart(2,'0');document.getElementById('data').value=_h2.getFullYear()+'-'+_mm2+'-'+_dd2;
       document.getElementById('turno').value   = '';
       document.getElementById('nome').value    = '';
       document.getElementById('sobrenome').value = '';
